@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Logo } from "./Logo";
 import { useCart } from "@/lib/cart";
+import { SearchBar } from "./SearchBar";
 
 const NAV = [
   { href: "/", label: "Home" },
@@ -31,6 +32,9 @@ export function Header() {
         <nav className="hidden gap-8 md:flex">
           {NAV.map((n) => <Link key={n.href} href={n.href} className="text-[15px] font-semibold text-slatey transition-colors hover:text-blue">{n.label}</Link>)}
         </nav>
+        <div className="hidden w-72 lg:block">
+          <SearchBar variant="header" placeholder="Search any part…" />
+        </div>
         <div className="flex items-center gap-3">
           <button onClick={toggle} className="relative grid h-10 w-10 place-items-center rounded-lg border border-line text-ink transition-colors hover:border-blue hover:text-blue" title="Cart">
             <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="7" cy="17" r="1.5" /><circle cx="15" cy="17" r="1.5" /><path d="M1 1h3l2.2 11h9.5L18 4H5" /></svg>
@@ -45,6 +49,9 @@ export function Header() {
       {open && (
         <div className="border-t border-line bg-white md:hidden">
           <div className="wrap flex flex-col py-2">
+            <div className="py-2">
+              <SearchBar variant="header" placeholder="Search any part…" />
+            </div>
             {NAV.map((n) => <Link key={n.href} href={n.href} onClick={() => setOpen(false)} className="py-3 font-semibold text-slatey">{n.label}</Link>)}
           </div>
         </div>

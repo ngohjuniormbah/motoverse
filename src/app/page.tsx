@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { type Product, CAR_MAKES } from "@/lib/products";
 import { ProductCard, OrderModal } from "@/components/Product";
+import { SearchBar } from "@/components/SearchBar";
 
 function useReveal() {
   const ref = useRef<HTMLDivElement>(null);
@@ -174,16 +175,19 @@ export default function Home() {
             Hundreds of brands and thousands of parts for all cars — no account needed. Browse, order, delivered.
           </motion.p>
           <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: .4, duration: .7 }}
-            className="mx-auto mt-9 flex max-w-2xl flex-col gap-3 rounded-2xl bg-white p-3 shadow-soft sm:flex-row">
-            <select value={make} onChange={(e) => setMake(e.target.value)} className="input flex-1">
-              <option value="">All Brands</option>
-              {CAR_MAKES.map((m) => <option key={m.name} value={m.name}>{m.name}</option>)}
-            </select>
-            <select value={cat} onChange={(e) => setCat(e.target.value)} className="input flex-1">
-              <option value="">All Types</option>
-              {["Engine","Brakes","Suspension","Electrical","Interior","Body","Tools"].map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
-            <button onClick={search} className="btn btn-blue sm:px-10">Search</button>
+            className="mx-auto mt-9 max-w-2xl">
+            <SearchBar variant="hero" placeholder="Search any part — if we don't stock it, we'll find it for you…" />
+            <div className="mt-3 flex flex-col gap-3 rounded-2xl bg-white/10 p-3 backdrop-blur sm:flex-row">
+              <select value={make} onChange={(e) => setMake(e.target.value)} className="input flex-1">
+                <option value="">All Brands</option>
+                {CAR_MAKES.map((m) => <option key={m.name} value={m.name}>{m.name}</option>)}
+              </select>
+              <select value={cat} onChange={(e) => setCat(e.target.value)} className="input flex-1">
+                <option value="">All Types</option>
+                {["Engine","Brakes","Suspension","Electrical","Interior","Body","Tools"].map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+              <button onClick={search} className="btn btn-blue sm:px-10">Browse</button>
+            </div>
           </motion.div>
           <div className="mt-8 flex justify-center gap-2">
             {HERO_SLIDES.map((_, i) => (

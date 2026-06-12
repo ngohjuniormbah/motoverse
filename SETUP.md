@@ -13,6 +13,11 @@ SUPABASE_BUCKET=motoverse
 ```
 Optional email: SMTP_USER, SMTP_PASS, ADMIN_EMAIL.
 
+Optional smart search (the search bar sources missing parts from Google and
+adds them to the catalog automatically): GOOGLE_API_KEY + GOOGLE_CSE_ID
+(Google Programmable Search Engine). Without these keys the search bar still
+works — it falls back to a free web lookup.
+
 ## 1. Create the tables + demo data (run ONCE)
 1. Supabase dashboard -> **SQL Editor** -> **New query**.
 2. Open `supabase-setup.sql` from this project, copy ALL of it, paste, click **Run**.
