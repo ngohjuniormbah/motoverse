@@ -8,7 +8,7 @@ export function Footer() {
         <div className="mb-12 grid items-center gap-6 rounded-2xl border border-line bg-white p-8 md:grid-cols-2">
           <div>
             <h3 className="font-display text-2xl font-extrabold text-ink">Looking for a specific part?</h3>
-            <p className="mt-2 text-sm leading-relaxed text-mist">Search our catalog — and if it&apos;s not listed, we&apos;ll find it online and add it to your cart on the spot.</p>
+            <p className="mt-2 text-sm leading-relaxed text-mist">Search by part name, brand, or vehicle — every part for every make, ready to add to your cart.</p>
           </div>
           <SearchBar placeholder="Search any part…" />
         </div>

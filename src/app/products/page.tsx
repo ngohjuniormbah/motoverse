@@ -39,7 +39,7 @@ function ProductsInner() {
           <h1 className="h-sec mt-2 text-4xl md:text-5xl">{make !== "All" ? `${make} Parts` : cat !== "All" ? `${cat} Parts` : "All Parts"}</h1>
           <p className="mt-3 text-slatey">{loading ? "Loading…" : `${list.length} parts ready to ship nationwide.`}</p>
           <div className="mt-6 max-w-2xl">
-            <SearchBar placeholder="Search any part — if it's not here, we'll find it online for you…" />
+            <SearchBar placeholder="Search any part — name, brand, or vehicle…" />
           </div>
         </div>
       </section>

@@ -48,55 +48,74 @@ async function searchCatalog(sb: NonNullable<ReturnType<typeof getSupabase>>, q:
   return wordHits || [];
 }
 
-interface WebInfo { description: string; image: string | null; price: string | null; }
+interface WebInfo { description: string | null; image: string | null; price: string | null; }
 
 function extractPrice(text: string): string | null {
   const m = text.match(/\$\s?(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/);
   return m ? `$${m[1]}` : null;
 }
 
-// Google Custom Search (needs GOOGLE_API_KEY + GOOGLE_CSE_ID), falling back to
-// DuckDuckGo's free instant-answer API so web lookup always works without keys.
-async function webLookup(q: string): Promise<WebInfo | null> {
+async function jsonFetch(url: string): Promise<any | null> {
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(6000), headers: { "User-Agent": "Mozilla/5.0" } });
+    return res.ok ? await res.json() : null;
+  } catch { return null; }
+}
+
+// Web lookup chain: Google Custom Search (if GOOGLE_API_KEY + GOOGLE_CSE_ID are
+// set) → DuckDuckGo instant answers → Openverse image search. The free fallbacks
+// need no keys, so the lookup always has a chance to find a real photo.
+async function webLookup(q: string): Promise<WebInfo> {
+  const info: WebInfo = { description: null, image: null, price: null };
+  const searchQ = `${q} car part`;
   const key = process.env.GOOGLE_API_KEY;
   const cx = process.env.GOOGLE_CSE_ID;
-  const searchQ = `${q} car part`;
+
   if (key && cx) {
-    try {
-      const base = `https://www.googleapis.com/customsearch/v1?key=${key}&cx=${cx}&q=${encodeURIComponent(searchQ)}`;
-      const [webRes, imgRes] = await Promise.all([
-        fetch(`${base}&num=3`, { signal: AbortSignal.timeout(7000) }),
-        fetch(`${base}&searchType=image&num=1`, { signal: AbortSignal.timeout(7000) }),
-      ]);
-      const web = webRes.ok ? await webRes.json() : null;
-      const img = imgRes.ok ? await imgRes.json() : null;
-      const items: any[] = web?.items || [];
-      const snippet = items.map((i) => `${i.title || ""} ${i.snippet || ""}`).join(" ");
-      if (items.length) {
-        return {
-          description: items[0].snippet || `${titleCase(q)} — sourced from our supplier network.`,
-          image: img?.items?.[0]?.link || null,
-          price: extractPrice(snippet),
-        };
-      }
-    } catch { /* fall through to DuckDuckGo */ }
+    const base = `https://www.googleapis.com/customsearch/v1?key=${key}&cx=${cx}&q=${encodeURIComponent(searchQ)}`;
+    const [web, img] = await Promise.all([jsonFetch(`${base}&num=3`), jsonFetch(`${base}&searchType=image&num=1`)]);
+    const items: any[] = web?.items || [];
+    if (items.length) {
+      info.description = items[0].snippet || null;
+      info.price = extractPrice(items.map((i) => `${i.title || ""} ${i.snippet || ""}`).join(" "));
+    }
+    info.image = img?.items?.[0]?.link || null;
+    if (info.image && info.description) return info;
   }
-  try {
-    const res = await fetch(
-      `https://api.duckduckgo.com/?q=${encodeURIComponent(searchQ)}&format=json&no_html=1&skip_disambig=1`,
-      { signal: AbortSignal.timeout(7000) }
-    );
-    if (!res.ok) return null;
-    const d = await res.json();
-    const abstract = d.AbstractText || d.RelatedTopics?.[0]?.Text || "";
-    return {
-      description: abstract || `${titleCase(q)} — sourced from our supplier network.`,
-      image: d.Image ? (d.Image.startsWith("http") ? d.Image : `https://duckduckgo.com${d.Image}`) : null,
-      price: extractPrice(abstract),
-    };
-  } catch {
-    return null;
+
+  const ddg = await jsonFetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(searchQ)}&format=json&no_html=1&skip_disambig=1`);
+  if (ddg) {
+    const abstract = ddg.AbstractText || ddg.RelatedTopics?.[0]?.Text || "";
+    if (!info.description && abstract) { info.description = abstract; info.price = info.price || extractPrice(abstract); }
+    if (!info.image && ddg.Image) info.image = ddg.Image.startsWith("http") ? ddg.Image : `https://duckduckgo.com${ddg.Image}`;
   }
+
+  if (!info.image) {
+    const ov = await jsonFetch(`https://api.openverse.org/v1/images/?q=${encodeURIComponent(searchQ)}&page_size=1`);
+    info.image = ov?.results?.[0]?.thumbnail || ov?.results?.[0]?.url || null;
+  }
+  return info;
+}
+
+function buildProduct(q: string, info: WebInfo) {
+  const category = guessCategory(q);
+  const make = guessMake(q);
+  const name = titleCase(q);
+  const description = info.description
+    ? info.description.slice(0, 400)
+    : `${name} — quality ${make === "Universal" ? "" : `${make} `}replacement part, verified before shipping. We confirm exact pricing and fitment with you when you order.`;
+  return {
+    name,
+    brand: "Motoverse",
+    make,
+    category,
+    price: info.price || "Price on request",
+    badge: "New",
+    stock: 10,
+    featured: false,
+    description,
+    image: info.image || CATEGORY_IMG[category] || "/parts/car5.jpeg",
+  };
 }
 
 export async function GET(req: NextRequest) {
@@ -109,30 +128,38 @@ export async function GET(req: NextRequest) {
     const hits = await searchCatalog(sb, q);
     if (hits.length) return NextResponse.json({ products: hits, sourced: false });
   }
-  // Catalog miss — while the user is still typing we stop here; on submit we go to the web
   if (suggestOnly) return NextResponse.json({ products: [], sourced: false });
 
-  const info = await webLookup(q);
-  const category = guessCategory(q);
+  // Catalog miss — build the product from a web lookup, but don't persist yet:
+  // it's saved to the catalog only when the customer actually adds it to cart.
+  const product = buildProduct(q, await webLookup(q));
+  return NextResponse.json({ products: [{ ...product, id: -Date.now() }], sourced: true });
+}
+
+// Persists a web-sourced product the moment a customer adds it to their cart,
+// so it's part of the website's catalog from then on.
+export async function POST(req: NextRequest) {
+  const sb = getSupabase();
+  const b = await req.json().catch(() => null);
+  if (!b?.name || !b?.image) return NextResponse.json({ error: "invalid" }, { status: 400 });
   const product = {
-    name: titleCase(q),
-    brand: "Motoverse Sourced",
-    make: guessMake(q),
-    category,
-    price: info?.price || "Price on request",
-    badge: "Sourced",
+    name: String(b.name).slice(0, 160),
+    brand: "Motoverse",
+    make: guessMake(String(b.name)),
+    category: CATEGORY_IMG[b.category] ? String(b.category) : guessCategory(String(b.name)),
+    price: String(b.price || "Price on request").slice(0, 40),
+    badge: "New",
     stock: 10,
     featured: false,
-    description: (info?.description || `${titleCase(q)} — sourced on request.`).slice(0, 500) +
-      " We locate this part through our supplier network and confirm availability, exact pricing, and fitment with you before shipping.",
-    image: info?.image || CATEGORY_IMG[category] || "/parts/car5.jpeg",
+    description: String(b.description || "").slice(0, 500),
+    image: String(b.image).slice(0, 1000),
   };
-
-  // Persist it so the part is on the website for every future customer
   if (sb) {
+    // If a customer added this same part moments ago, reuse it instead of duplicating
+    const { data: existing } = await sb.from("products").select("*").ilike("name", product.name).limit(1);
+    if (existing && existing.length) return NextResponse.json({ product: existing[0] });
     const { data, error } = await sb.from("products").insert(product).select().single();
-    if (!error && data) return NextResponse.json({ products: [data], sourced: true });
+    if (!error && data) return NextResponse.json({ product: data });
   }
-  // Supabase unavailable — still hand the customer a usable cart item
-  return NextResponse.json({ products: [{ ...product, id: -Date.now() }], sourced: true });
+  return NextResponse.json({ product: { ...product, id: -Date.now() } });
 }

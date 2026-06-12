@@ -176,7 +176,7 @@ export default function Home() {
           </motion.p>
           <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: .4, duration: .7 }}
             className="mx-auto mt-9 max-w-2xl">
-            <SearchBar variant="hero" placeholder="Search any part — if we don't stock it, we'll find it for you…" />
+            <SearchBar variant="hero" placeholder="Search any part — brakes, alternator, bumper…" />
             <div className="mt-3 flex flex-col gap-3 rounded-2xl bg-white/10 p-3 backdrop-blur sm:flex-row">
               <select value={make} onChange={(e) => setMake(e.target.value)} className="input flex-1">
                 <option value="">All Brands</option>
