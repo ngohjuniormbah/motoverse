@@ -8,7 +8,7 @@ export function ProductCard({ p, onOpen }: { p: Product; onOpen: (p: Product) =>
   return (
     <div className="card group flex flex-col overflow-hidden text-left">
       <button onClick={() => onOpen(p)} className="relative block aspect-[4/3] w-full overflow-hidden bg-cloud">
-        <span className="absolute left-3 top-3 z-10 rounded-md bg-blue px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white">{p.badge}</span>
+        {p.badge && <span className="absolute left-3 top-3 z-10 rounded-md bg-blue px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white">{p.badge}</span>}
         <img src={p.image} alt={p.name} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
       </button>
       <div className="flex flex-1 flex-col p-5">
