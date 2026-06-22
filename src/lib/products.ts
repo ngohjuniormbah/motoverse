@@ -21,6 +21,7 @@ export const CAR_MAKES = [
   { name: "Infiniti",  logo: "https://www.carlogos.org/car-logos/infiniti-logo.png" },
   { name: "Jeep",      logo: "https://www.carlogos.org/car-logos/jeep-logo.png" },
   { name: "Kia",       logo: "https://www.carlogos.org/car-logos/kia-logo.png" },
+  { name: "Land Rover",logo: "https://www.carlogos.org/car-logos/land-rover-logo.png" },
   { name: "Lexus",     logo: "https://www.carlogos.org/car-logos/lexus-logo.png" },
   { name: "Mazda",     logo: "https://www.carlogos.org/car-logos/mazda-logo.png" },
   { name: "Mercedes",  logo: "https://www.carlogos.org/car-logos/mercedes-benz-logo.png" },
