@@ -143,7 +143,7 @@ export function SearchBar({ variant = "inline", placeholder = "Search for any pa
                   <img src={p.image} alt={p.name} className="h-12 w-12 flex-none rounded-lg border border-line object-cover" />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-bold text-ink">{p.name}</p>
-                    <p className="truncate font-mono text-xs text-mist">{p.make} · {p.brand} · {p.price}</p>
+                    <p className="truncate font-mono text-xs text-mist">{p.make} · {p.brand}</p>
                   </div>
                   <button onClick={() => onAdd(p)}
                     className={`flex-none rounded-lg px-3 py-2 text-xs font-bold transition-colors ${added === p.id ? "bg-emerald-500 text-white" : "bg-blue text-white hover:bg-bluedark"}`}>
