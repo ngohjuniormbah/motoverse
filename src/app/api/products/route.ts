@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
+import { CATALOG } from "@/lib/catalog";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   const sb = getSupabase();
-  if (!sb) return NextResponse.json({ products: [] });
+  if (!sb) return NextResponse.json({ products: CATALOG });
   const { data } = await sb.from("products").select("*").order("created_at", { ascending: false });
-  return NextResponse.json({ products: data || [] });
+  // Static catalog (sparepart photo set) is merged in alongside the database products.
+  return NextResponse.json({ products: [...CATALOG, ...(data || [])] });
 }
 
 function ok(req: NextRequest) { return req.headers.get("x-admin-pw") === (process.env.ADMIN_PASSWORD || "motoverse"); }
