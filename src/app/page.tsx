@@ -73,7 +73,7 @@ const CATEGORIES_SHOWCASE = [
 ];
 const STEPS = [
   { n: "01", t: "Find Your Part", d: "Pick your car brand or search the catalog." },
-  { n: "02", t: "Add to Cart", d: "View details, price, and stock — then add it." },
+  { n: "02", t: "Place an Order", d: "View the part details and description, then place your order." },
   { n: "03", t: "Submit Order", d: "Name, phone, address — no account needed." },
   { n: "04", t: "We Deliver", d: "We confirm and ship to your door, tracked." },
 ];

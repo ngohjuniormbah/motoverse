@@ -5,23 +5,19 @@ import type { Product } from "@/lib/products";
 import { useCart } from "@/lib/cart";
 
 export function ProductCard({ p, onOpen }: { p: Product; onOpen: (p: Product) => void }) {
-  const low = p.stock > 0 && p.stock <= 5;
   return (
-    <button onClick={() => onOpen(p)} className="card group overflow-hidden text-left">
-      <div className="relative aspect-[4/3] overflow-hidden bg-cloud">
+    <div className="card group flex flex-col overflow-hidden text-left">
+      <button onClick={() => onOpen(p)} className="relative block aspect-[4/3] w-full overflow-hidden bg-cloud">
         <span className="absolute left-3 top-3 z-10 rounded-md bg-blue px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white">{p.badge}</span>
-        {p.stock === 0 && <span className="absolute right-3 top-3 z-10 rounded-md bg-ink/80 px-2.5 py-1 text-[10px] font-bold text-white">Out of stock</span>}
         <img src={p.image} alt={p.name} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
-      </div>
-      <div className="p-5">
+      </button>
+      <div className="flex flex-1 flex-col p-5">
         <p className="font-mono text-[11px] uppercase tracking-wide text-mist">{p.make} · {p.brand}</p>
         <p className="mt-1.5 line-clamp-2 text-[15px] font-bold leading-snug text-ink">{p.name}</p>
-        <div className="mt-3 flex items-center justify-between">
-          <span className="font-mono text-lg font-extrabold text-ink">{p.price}</span>
-          {low ? <span className="chip text-blue">Only {p.stock} left</span> : <span className="text-sm font-bold text-blue">View →</span>}
-        </div>
+        <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-slatey">{p.description}</p>
+        <button onClick={() => onOpen(p)} className="btn btn-blue mt-4 w-full">Place an order</button>
       </div>
-    </button>
+    </div>
   );
 }
 
@@ -51,10 +47,6 @@ export function OrderModal({ p, onClose }: { p: Product | null; onClose: () => v
               <button onClick={onClose} className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-lg bg-cloud text-ink hover:bg-blue hover:text-white">✕</button>
               <p className="font-mono text-xs uppercase tracking-wide text-mist">{p.make} · {p.brand} · {p.category}</p>
               <h2 className="mt-1 font-display text-2xl font-extrabold text-ink">{p.name}</h2>
-              <div className="mt-2 flex items-center gap-3">
-                <span className="font-mono text-2xl font-extrabold text-blue">{p.price}</span>
-                {p.stock > 0 ? <span className="chip text-emerald-600">In stock{p.stock <= 5 ? ` · ${p.stock} left` : ""}</span> : <span className="chip">Out of stock</span>}
-              </div>
               {sent ? (
                 <div className="mt-5 rounded-xl border border-blue/20 bg-blue/5 p-5 text-center">
                   <p className="font-display text-xl font-extrabold text-blue">Order received!</p>
